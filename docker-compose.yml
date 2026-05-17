@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: goalsync
+      POSTGRES_PASSWORD: goalsync123
+      POSTGRES_DB: goalsync
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:10000"
+    environment:
+      DATABASE_URL: postgresql://goalsync:goalsync123@db:5432/goalsync
+      SECRET_KEY: local-dev-secret-key
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npm run dev -- --host"
+
+volumes:
+  pgdata:
